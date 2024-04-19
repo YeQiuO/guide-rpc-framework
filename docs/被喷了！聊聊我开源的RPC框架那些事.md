@@ -18,23 +18,28 @@
 
 开源出来之后，大部小伙伴都是比较支持的，有很多小伙伴都参与了进来一起完善。
 
-这里点名表扬一下Github用户名为 **[sakuragi1111](https://github.com/sakuragi1111)**  和 **[smile2coder](https://github.com/smile2coder)**  这两位老哥。
+这里点名表扬一下Github用户名为 **[sakuragi1111](https://github.com/sakuragi1111)**  和 *
+*[smile2coder](https://github.com/smile2coder)**  这两位老哥。
 
 sakuragi1111 这位老哥通过参考 Dubbo 源码实现了 SPI 机制。
 
 ![](../images/beipenle/image-20200904140045964.png)
 
-[smile2coder](https://github.com/smile2coder) 这位老哥为  [guide-rpc-framework](https://github.com/Snailclimb/guide-rpc-framework) 添加了通过注解实现服务消费的功能。
+[smile2coder](https://github.com/smile2coder)
+这位老哥为  [guide-rpc-framework](https://github.com/Snailclimb/guide-rpc-framework) 添加了通过注解实现服务消费的功能。
 
 ![](../images/beipenle/image-20200904140604371.png)
 
-目前的话， **[guide-rpc-framework](https://github.com/Snailclimb/guide-rpc-framework) 已经支持通过注解进行服务消费和注册。**
+目前的话， **[guide-rpc-framework](https://github.com/Snailclimb/guide-rpc-framework) 已经支持通过注解进行服务消费和注册。
+**
 
 程序世界，什么样的人都有，有人感谢你，也会有人贬低你。
 
 ## 03 不那么好的声音
 
-在我的 [guide-rpc-framework](https://github.com/Snailclimb/guide-rpc-framework)  开源之后，也经常会受到像：“你有本事别用现成的框架写一个啊？”、“你这个写的一点亮点都没有，有啥意思？”、“都有了 Dubbo 之后，为啥还要自己写一个？”、“重复造轮子没意义”......之类的不太友善的话语。
+在我的 [guide-rpc-framework](https://github.com/Snailclimb/guide-rpc-framework)
+开源之后，也经常会受到像：“你有本事别用现成的框架写一个啊？”、“你这个写的一点亮点都没有，有啥意思？”、“都有了 Dubbo
+之后，为啥还要自己写一个？”、“重复造轮子没意义”......之类的不太友善的话语。
 
 说句心里话，一般说出来这种话的人往往技术水平很低。
 
@@ -44,27 +49,31 @@ sakuragi1111 这位老哥通过参考 Dubbo 源码实现了 SPI 机制。
 
 毫不夸张地说：**开源出来的东西，就是全体技术人共同的财富。**
 
-Netty 比 NIO 更好用、更完善，我为啥还要直接使用 NIO呢？我们平常经常接触的 Dubbo、RocketMQ、Elasticsearch、gRPC 等等都用到了 Netty 啊。
+Netty 比 NIO 更好用、更完善，我为啥还要直接使用 NIO呢？我们平常经常接触的 Dubbo、RocketMQ、Elasticsearch、gRPC 等等都用到了
+Netty 啊。
 
 **2.你这个写的一点亮点都没有，有啥意思？**
 
-有能耐的话，你也可以自己写一个。说出此类的话的人，往往是有及其嫉妒心理的人。而且，RPC 框架本身就已经有很多比较成熟的例子了比如 Dubbo。说实话，Dubbo 基本是已近把 RPC 框架能考虑到的点都考虑到了。
+有能耐的话，你也可以自己写一个。说出此类的话的人，往往是有及其嫉妒心理的人。而且，RPC 框架本身就已经有很多比较成熟的例子了比如
+Dubbo。说实话，Dubbo 基本是已近把 RPC 框架能考虑到的点都考虑到了。
 
 我不信你一个人，能干过人家一个团队好多年的成果。
 
 **3.都有了 Dubbo 之后，为啥还要自己写一个？**
 
-**一定要学会看 README!!!** 
+**一定要学会看 README!!!**
 
-我在项目的 README  中明确说明了：**写这个 RPC 框架主要是为了通过造轮子的方式来学习，检验自己对于自己所掌握的知识的运用。**
+我在项目的 README 中明确说明了：**写这个 RPC 框架主要是为了通过造轮子的方式来学习，检验自己对于自己所掌握的知识的运用。**
 
 ![](../images/beipenle/image-20200904144336571.png)
 
 **4.重复造轮子没意义**
 
-**我们实际项目开发中是比较忌讳造轮子的，但是，实际学习过程中造轮子绝对是最自己百利而无一害的！** 
+**我们实际项目开发中是比较忌讳造轮子的，但是，实际学习过程中造轮子绝对是最自己百利而无一害的！**
 
-我的 RPC 框架肯定是无法和 Dubbo 这类已经这么成熟的相提并论。但是，在自己去写 RPC 框架的时候，更加加深了自己对于 RPC 框架的认识。实现的过程中，遇到了很多问题，解决问题的过程中也提高了自己的编程能力。总而言之，**造轮子是一种特别能够提高自己系统编程能力的手段。**
+我的 RPC 框架肯定是无法和 Dubbo 这类已经这么成熟的相提并论。但是，在自己去写 RPC 框架的时候，更加加深了自己对于 RPC
+框架的认识。实现的过程中，遇到了很多问题，解决问题的过程中也提高了自己的编程能力。总而言之，**造轮子是一种特别能够提高自己系统编程能力的手段。
+**
 
 ## 04 拥抱开源
 
@@ -76,11 +85,12 @@ Netty 比 NIO 更好用、更完善，我为啥还要直接使用 NIO呢？我�
 
 ![](../images/beipenle/640.png)
 
-虽然，现在 Github 被很多人单纯玩成了引流工具。但是，**整体来说 Github 整体技术环境和氛围还是很不错的！** 
+虽然，现在 Github 被很多人单纯玩成了引流工具。但是，**整体来说 Github 整体技术环境和氛围还是很不错的！**
 
 另外，最好的话是要给项目弄一个英文版本，项目代码中的注释最好也要是英文的。毕竟是开源，最好是能准守开源精神使用世界通用语言（这一点我自己也没做好，反思！）。
 
-如果你想让自己的开源项目被更多人知道的话，你可以在下面技术平台宣传（**不宣传的话，开源的东西很难被别人知道，不要让好东西被埋没**）：
+如果你想让自己的开源项目被更多人知道的话，你可以在下面技术平台宣传（**不宣传的话，开源的东西很难被别人知道，不要让好东西被埋没
+**）：
 
 ![](../images/beipenle/640-20200904150730507.png)
 

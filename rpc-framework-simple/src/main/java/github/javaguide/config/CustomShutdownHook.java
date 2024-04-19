@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 /**
- * When the server  is closed, do something such as unregister all services
+ * 当服务器关闭时，执行一些操作，例如取消注册所有服务
  *
  * @author shuang.kou
  * @createTime 2020年06月04日 13:11:00
@@ -25,12 +25,15 @@ public class CustomShutdownHook {
 
     public void clearAll() {
         log.info("addShutdownHook for clearAll");
+        // 在 JVM 销毁前执行
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), NettyRpcServer.PORT);
+                // 把当前系统挂载在 zk 上的服务关闭
                 CuratorUtils.clearRegistry(CuratorUtils.getZkClient(), inetSocketAddress);
             } catch (UnknownHostException ignored) {
             }
+            // 关闭所有线程池
             ThreadPoolFactoryUtil.shutDownAllThreadPool();
         }));
     }

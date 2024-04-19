@@ -1,5 +1,3 @@
-
-
 ### 使用 AttributeMap 接受服务端返回结果
 
 最开始的时候是通过 `AttributeMap` 绑定到Channel上实现的，相关代码如下：
@@ -33,7 +31,7 @@
 现在，在你只需要通过下面的方式就能成功接收到客户端返回的结果：
 
 ```java
-CompletableFuture<RpcResponse> completableFuture = (CompletableFuture<RpcResponse>) rpcRequestTransport.sendRpcRequest(rpcRequest);
-rpcResponse = completableFuture.get();
+CompletableFuture<RpcResponse> completableFuture=(CompletableFuture<RpcResponse>)rpcRequestTransport.sendRpcRequest(rpcRequest);
+        rpcResponse=completableFuture.get();
 ```
 

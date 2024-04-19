@@ -45,18 +45,22 @@ public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
                 RpcMessage rpcMessage = new RpcMessage();
                 rpcMessage.setCodec(SerializationTypeEnum.HESSIAN.getCode());
                 rpcMessage.setCompress(CompressTypeEnum.GZIP.getCode());
+                // 如果是心跳请求，那么就返回个 pong 回去
                 if (messageType == RpcConstants.HEARTBEAT_REQUEST_TYPE) {
                     rpcMessage.setMessageType(RpcConstants.HEARTBEAT_RESPONSE_TYPE);
                     rpcMessage.setData(RpcConstants.PONG);
+                    // 否则就是有内容的了
                 } else {
                     RpcRequest rpcRequest = (RpcRequest) ((RpcMessage) msg).getData();
-                    // Execute the target method (the method the client needs to execute) and return the method result
+                    // 执行目标方法(客户端需要执行的方法)并返回方法结果
                     Object result = rpcRequestHandler.handle(rpcRequest);
                     log.info(String.format("server get result: %s", result.toString()));
                     rpcMessage.setMessageType(RpcConstants.RESPONSE_TYPE);
+                    // 把结果写到response里面
                     if (ctx.channel().isActive() && ctx.channel().isWritable()) {
                         RpcResponse<Object> rpcResponse = RpcResponse.success(result, rpcRequest.getRequestId());
                         rpcMessage.setData(rpcResponse);
+                        // 如果失败了，把失败的结果写到里面
                     } else {
                         RpcResponse<Object> rpcResponse = RpcResponse.fail(RpcResponseCodeEnum.FAIL);
                         rpcMessage.setData(rpcResponse);
@@ -66,17 +70,18 @@ public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(rpcMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
             }
         } finally {
-            //Ensure that ByteBuf is released, otherwise there may be memory leaks
+            // Ensure that ByteBuf is released, otherwise there may be memory leaks
             ReferenceCountUtil.release(msg);
         }
     }
 
     @Override
+    // 处理当读写空闲时长超过设置的时间范围的回调函数, 和 IdleStateHandler 一起使用
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if (evt instanceof IdleStateEvent) {
             IdleState state = ((IdleStateEvent) evt).state();
             if (state == IdleState.READER_IDLE) {
-                log.info("idle check happen, so close the connection");
+                log.info("服务端30秒内没有收到客户端心跳, 即将关闭连接");
                 ctx.close();
             }
         } else {

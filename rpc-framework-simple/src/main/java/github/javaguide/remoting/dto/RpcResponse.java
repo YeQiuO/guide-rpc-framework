@@ -1,12 +1,7 @@
 package github.javaguide.remoting.dto;
 
 import github.javaguide.enums.RpcResponseCodeEnum;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -23,18 +18,13 @@ import java.io.Serializable;
 public class RpcResponse<T> implements Serializable {
 
     private static final long serialVersionUID = 715745410605631233L;
+    // RPC响应的唯一标识符
     private String requestId;
-    /**
-     * response code
-     */
+    // [RpcResponseCodeEnum]请求码 200成功 500失败
     private Integer code;
-    /**
-     * response message
-     */
+    // [RpcResponseCodeEnum]请求信息
     private String message;
-    /**
-     * response body
-     */
+    // 消息内容
     private T data;
 
     public static <T> RpcResponse<T> success(T data, String requestId) {

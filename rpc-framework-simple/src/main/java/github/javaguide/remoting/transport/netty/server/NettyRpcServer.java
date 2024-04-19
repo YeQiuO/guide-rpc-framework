@@ -10,11 +10,7 @@ import github.javaguide.remoting.transport.netty.codec.RpcMessageEncoder;
 import github.javaguide.utils.RuntimeUtil;
 import github.javaguide.utils.concurrent.threadpool.ThreadPoolFactoryUtil;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -40,19 +36,24 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class NettyRpcServer {
 
-    public static final int PORT = 9998;
+    public static final int PORT = 9999;
 
     private final ServiceProvider serviceProvider = SingletonFactory.getInstance(ZkServiceProviderImpl.class);
 
+    // 显式注册服务的方法
     public void registerService(RpcServiceConfig rpcServiceConfig) {
         serviceProvider.publishService(rpcServiceConfig);
     }
 
     @SneakyThrows
     public void start() {
+        // 单独启动一个线程,在服务关闭的时候执行"关闭钩子",确保在服务器关闭时资源能够得到释放。
         CustomShutdownHook.getCustomShutdownHook().clearAll();
+        // 获取了服务器主机的 IP 地址
         String host = InetAddress.getLocalHost().getHostAddress();
+        // 创建了用于接收客户端连接的主事件循环组 bossGroup，参数 1 表示线程数为 1
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        // 创建了用于处理客户端请求的工作事件循环组 workerGroup，采用默认线程数
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         DefaultEventExecutorGroup serviceHandlerGroup = new DefaultEventExecutorGroup(
                 RuntimeUtil.cpus() * 2,
@@ -66,7 +67,7 @@ public class NettyRpcServer {
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     // 是否开启 TCP 底层心跳机制
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    //表示系统用于临时存放已完成三次握手的请求的队列的最大长度,如果连接建立频繁，服务器处理创建新连接较慢，可以适当调大这个参数
+                    // 表示系统用于临时存放已完成三次握手的请求的队列的最大长度,如果连接建立频繁，服务器处理创建新连接较慢，可以适当调大这个参数
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     // 当客户端第一次进行请求的时候才会进行初始化
@@ -75,10 +76,12 @@ public class NettyRpcServer {
                         protected void initChannel(SocketChannel ch) {
                             // 30 秒之内没有收到客户端请求的话就关闭连接
                             ChannelPipeline p = ch.pipeline();
+                            // IdleStateHandler 心跳检测，实现超时断开连接
                             p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
-                            p.addLast(new RpcMessageEncoder());
-                            p.addLast(new RpcMessageDecoder());
-                            p.addLast(serviceHandlerGroup, new NettyRpcServerHandler());
+                            p.addLast(new RpcMessageEncoder());  // ChannelOutboundHandler（发送消息，从下往上）
+                            p.addLast(new RpcMessageDecoder());  // ChannelInboundHandler（接收消息，从上往下）
+                            // 这个 handler 就会在 serviceHandlerGroup 上执行
+                            p.addLast(serviceHandlerGroup, new NettyRpcServerHandler());  // ChannelInboundHandler
                         }
                     });
 

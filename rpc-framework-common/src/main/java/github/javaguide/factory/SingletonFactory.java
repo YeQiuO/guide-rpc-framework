@@ -27,7 +27,8 @@ public final class SingletonFactory {
             return c.cast(OBJECT_MAP.computeIfAbsent(key, k -> {
                 try {
                     return c.getDeclaredConstructor().newInstance();
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                         NoSuchMethodException e) {
                     throw new RuntimeException(e.getMessage(), e);
                 }
             }));

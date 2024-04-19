@@ -42,46 +42,63 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class RpcMessageEncoder extends MessageToByteEncoder<RpcMessage> {
+    // 为每个请求生成一个唯一的标识
     private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(0);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, RpcMessage rpcMessage, ByteBuf out) {
         try {
+            // 写入魔术
             out.writeBytes(RpcConstants.MAGIC_NUMBER);
+            // 写入版本
             out.writeByte(RpcConstants.VERSION);
-            // leave a place to write the value of full length
+            // 预留四个byte的地方给总长度
             out.writerIndex(out.writerIndex() + 4);
+            // 得到消息类型
             byte messageType = rpcMessage.getMessageType();
+            // 写入信息类型
             out.writeByte(messageType);
+            // 写入序列化类型
             out.writeByte(rpcMessage.getCodec());
+            // 写入压缩方式
             out.writeByte(CompressTypeEnum.GZIP.getCode());
+            // 把唯一的，自增的int值，作为RequestId
             out.writeInt(ATOMIC_INTEGER.getAndIncrement());
-            // build full length
+            // 存放消息体，便于计算长度
             byte[] bodyBytes = null;
+            // 初始化消息的总长度，初始值为头部长度
             int fullLength = RpcConstants.HEAD_LENGTH;
-            // if messageType is not heartbeat message,fullLength = head length + body length
+            // 如果不是心跳消息，总长度等于头+消息体
             if (messageType != RpcConstants.HEARTBEAT_REQUEST_TYPE
                     && messageType != RpcConstants.HEARTBEAT_RESPONSE_TYPE) {
                 // serialize the object
                 String codecName = SerializationTypeEnum.getName(rpcMessage.getCodec());
                 log.info("codec name: [{}] ", codecName);
+                // 还是一样的，用 extensionloadre 获取具体的序列化对象,
                 Serializer serializer = ExtensionLoader.getExtensionLoader(Serializer.class)
                         .getExtension(codecName);
+                // 然后进行序列化
                 bodyBytes = serializer.serialize(rpcMessage.getData());
-                // compress the bytes
+                // 获取压缩实体类
                 String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
                 Compress compress = ExtensionLoader.getExtensionLoader(Compress.class)
                         .getExtension(compressName);
+                // 压缩
                 bodyBytes = compress.compress(bodyBytes);
+                // 加上到总长度
                 fullLength += bodyBytes.length;
             }
 
             if (bodyBytes != null) {
                 out.writeBytes(bodyBytes);
             }
+            // 获取当前的写入位置
             int writeIndex = out.writerIndex();
+            // 移动到预留空间的位置
             out.writerIndex(writeIndex - fullLength + RpcConstants.MAGIC_NUMBER.length + 1);
+            // 把总长度的值写到对应的地方
             out.writeInt(fullLength);
+            // 还原写入位置
             out.writerIndex(writeIndex);
         } catch (Exception e) {
             log.error("Encode request error!", e);

@@ -25,5 +25,6 @@ class HessianSerializerTest {
         assertEquals(target.getGroup(), actual.getGroup());
         assertEquals(target.getVersion(), actual.getVersion());
         assertEquals(target.getRequestId(), actual.getRequestId());
+        System.out.println(bytes.length);
     }
 }

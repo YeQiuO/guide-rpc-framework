@@ -22,4 +22,9 @@ public class HelloServiceImpl2 implements HelloService {
         log.info("HelloServiceImpl2返回: {}.", result);
         return result;
     }
+
+    @Override
+    public String wen(Hello hello) {
+        return null;
+    }
 }

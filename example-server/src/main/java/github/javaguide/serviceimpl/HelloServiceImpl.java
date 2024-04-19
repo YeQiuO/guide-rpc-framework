@@ -24,4 +24,9 @@ public class HelloServiceImpl implements HelloService {
         log.info("HelloServiceImpl返回: {}.", result);
         return result;
     }
+
+    @Override
+    public String wen(Hello hello) {
+        return null;
+    }
 }

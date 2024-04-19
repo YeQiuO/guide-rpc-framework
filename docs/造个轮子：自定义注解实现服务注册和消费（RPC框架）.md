@@ -58,8 +58,6 @@ public @interface RpcScan {
 
 ```
 
-
-
 ### 自定义服务注册注解 `RpcService`
 
 为此，我们自定义了一个注解 `RpcService`，并且这个注解有两个属性：
@@ -67,7 +65,8 @@ public @interface RpcScan {
 1. `version` :服务版本。主要是为后续不兼容升级提供可能
 2. `group` : 服务所在的组。主要用于处理一个接口有多个类实现的情况。
 
-并且， `RpcService`这个注解还使用了 Spring 提供的 `@Component` 注解。这样的话，使用 `RpcService`注解的类就会交由 Spring 管理（前提是被被`@ComponentScan`注解扫描到 ）。
+并且， `RpcService`这个注解还使用了 Spring 提供的 `@Component` 注解。这样的话，使用 `RpcService`注解的类就会交由 Spring
+管理（前提是被被`@ComponentScan`注解扫描到 ）。
 
 ```java
 import org.springframework.stereotype.Component;
@@ -105,9 +104,12 @@ public @interface RpcService {
 }
 ```
 
-接下来，我们实现 `BeanPostProcessor` 接口，Spring Bean 在实例化之前会调用 `BeanPostProcessor` 接口的 `postProcessBeforeInitialization()`方法。
+接下来，我们实现 `BeanPostProcessor` 接口，Spring Bean 在实例化之前会调用 `BeanPostProcessor`
+接口的 `postProcessBeforeInitialization()`方法。
 
-被我们使用 `RpcService`注解的类也算是 Spring Bean，所以，我们可以在`postProcessBeforeInitialization()`方法中去判断类上是否有`RpcService` 注解，如果有的话，就取出 `group` 和 `version` 的值。然后，再调用 `ServiceProvider` 的 `publishService()` 方法发布服务即可！
+被我们使用 `RpcService`注解的类也算是 Spring Bean，所以，我们可以在`postProcessBeforeInitialization()`
+方法中去判断类上是否有`RpcService` 注解，如果有的话，就取出 `group` 和 `version` 的值。然后，再调用 `ServiceProvider`
+的 `publishService()` 方法发布服务即可！
 
 ```java
 import github.javaguide.annotation.RpcService;

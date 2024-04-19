@@ -15,12 +15,7 @@ import github.javaguide.remoting.transport.RpcRequestTransport;
 import github.javaguide.remoting.transport.netty.codec.RpcMessageDecoder;
 import github.javaguide.remoting.transport.netty.codec.RpcMessageEncoder;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -42,10 +37,15 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public final class NettyRpcClient implements RpcRequestTransport {
+    // 服务发现的实例，用于查找服务的地址
     private final ServiceDiscovery serviceDiscovery;
+    // 未处理的请求实例，用于存储未完成的 RPC 请求
     private final UnprocessedRequests unprocessedRequests;
+    // 通道提供者的实例，用于管理和提供与服务器地址相关联的通道
     private final ChannelProvider channelProvider;
+    // Netty的Bootstrap实例，用于配置和初始化Netty客户端
     private final Bootstrap bootstrap;
+    // Netty的EventLoopGroup实例，用于处理事件循环
     private final EventLoopGroup eventLoopGroup;
 
     public NettyRpcClient() {
@@ -58,15 +58,18 @@ public final class NettyRpcClient implements RpcRequestTransport {
                 //  The timeout period of the connection.
                 //  If this time is exceeded or the connection cannot be established, the connection fails.
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                // ChannelInitializer 在某个 Channel 注册到 EventLoop 后，对这个 Channel 执行一些初始化操作  https://www.cnblogs.com/myitnews/p/12213602.html
                 .handler(new ChannelInitializer<SocketChannel>() {
+                    // 在 ServerBootstrap 初始化时，为监听端口 accept 事件的 Channel 添加 ServerBootstrapAcceptor
+                    // 在有新链接进入时，为监听客户端read/write事件的Channel添加用户自定义的ChannelHandler
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         ChannelPipeline p = ch.pipeline();
                         // If no data is sent to the server within 15 seconds, a heartbeat request is sent
                         p.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
-                        p.addLast(new RpcMessageEncoder());
-                        p.addLast(new RpcMessageDecoder());
-                        p.addLast(new NettyRpcClientHandler());
+                        p.addLast(new RpcMessageEncoder());  // ChannelOutboundHandler（发送消息，从下往上 https://blog.csdn.net/qq_42651904/article/details/134325940）
+                        p.addLast(new RpcMessageDecoder());  // ChannelInboundHandler（接收消息，从上往下）
+                        p.addLast(new NettyRpcClientHandler());  // ChannelInboundHandler（接收消息，从上往下）
                     }
                 });
         this.serviceDiscovery = ExtensionLoader.getExtensionLoader(ServiceDiscovery.class).getExtension(ServiceDiscoveryEnum.ZK.getName());
@@ -75,7 +78,7 @@ public final class NettyRpcClient implements RpcRequestTransport {
     }
 
     /**
-     * connect server and get the channel ,so that you can send rpc message to server
+     * 连接服务器并获取通道，以便您可以向服务器发送 RPC 消息
      *
      * @param inetSocketAddress server address
      * @return the channel
@@ -96,14 +99,14 @@ public final class NettyRpcClient implements RpcRequestTransport {
 
     @Override
     public Object sendRpcRequest(RpcRequest rpcRequest) {
-        // build return value
+        // 这个异步操作的结果是一个包含泛型类型为 Object 的 RpcResponse 对象
         CompletableFuture<RpcResponse<Object>> resultFuture = new CompletableFuture<>();
-        // get server address
+        // 使用 serviceDiscovery（服务发现）查找并获取RPC请求的服务地址
         InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest);
-        // get  server address related channel
+        // 通过 getChannel 方法获取与指定服务器地址关联的 Channel
         Channel channel = getChannel(inetSocketAddress);
         if (channel.isActive()) {
-            // put unprocessed request
+            // 将 RPC 请求放入未处理请求的集合中，以便后续处理响应
             unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
             RpcMessage rpcMessage = RpcMessage.builder().data(rpcRequest)
                     .codec(SerializationTypeEnum.HESSIAN.getCode())
@@ -122,6 +125,7 @@ public final class NettyRpcClient implements RpcRequestTransport {
             throw new IllegalStateException();
         }
 
+        // 在这里不对响应进行处理，而是到unprocessedRequests的complete方法里面才处理，也就是说这里返回的resultFuture啥也没有
         return resultFuture;
     }
 
